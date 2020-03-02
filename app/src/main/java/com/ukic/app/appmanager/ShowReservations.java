@@ -8,7 +8,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.GridLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -40,7 +42,7 @@ public class ShowReservations extends AppCompatActivity {
 
     ProgressDialog pd;
 
-    TableLayout tableLayout;
+    GridLayout gridLayout;
     Set<Apartment> apartments = new HashSet<>();
 
     @Override
@@ -48,7 +50,7 @@ public class ShowReservations extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.calendar);
 
-        tableLayout = (TableLayout) findViewById(R.id.table);
+        gridLayout = (GridLayout) findViewById(R.id.table);
 
         try {
             new FetchApartments().execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments").get();
@@ -57,24 +59,46 @@ public class ShowReservations extends AppCompatActivity {
             exp.getStackTrace();
         }
 
+        gridLayout.setColumnCount(31);
+        gridLayout.setRowCount(2);
+
+        for (int i = 1; i <= 31; i++) {
+            TextView textView = new TextView(this);
+            textView.setBackgroundColor(Color.CYAN);
+            textView.setText(new String(""+i));
+            textView.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+            addViewToGridLayout(textView, 0, i-1, 1, 1);
+        }
+
         for (Apartment apartment : apartments) {
-            for (int i = 1; i <= 31; i++) {
-                TableRow tableRow = new TableRow(this);
-                tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+            for (int i = 0; i < 31; i++) {
+
                 Button text = new Button(this);
                 String s = i + ": cijena" + apartment.getApartmentName() + ": ";
-                s += apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i)) == null ? "prazno" :  apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i)).getTourists().getName();
+                s += apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i+1)) == null ? "prazno" :  apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i+1)).getTourists().getName();
                 int fin = i;
                 text.setOnClickListener(l -> {
                     Intent intent = new Intent(this, ShowReservation.class);
-                    intent.putExtra("reservation", apartment.getApartmentReservations().get(LocalDate.of(2019, 8, fin)));
+                    intent.putExtra("reservation", apartment.getApartmentReservations().get(LocalDate.of(2019, 8, fin+1)));
                     startActivity(intent);
                 });
                 text.setText(s);
                 text.setBackgroundColor(Color.GREEN);
                 text.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                addViewToGridLayout(text, 1, i, 1, 1);
+
+                /*
+
                 tableRow.addView(text);
+                TextView c1 = new TextView(this);
+                TextView c2 = new TextView(this);
+                c1.setText("column1");
+                c2.setText("column1");
+                tableRow.addView(c1)
+                tableRow.addView(c2);
                 tableLayout.addView(tableRow, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
+
+                 */
             }
             break;
         }
@@ -83,6 +107,16 @@ public class ShowReservations extends AppCompatActivity {
 
 
 
+    }
+
+    private void addViewToGridLayout(View view, int row, int column, int rowSpan, int columnSpan) {
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.width = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.columnSpec = GridLayout.spec(column, columnSpan);
+        params.rowSpec = GridLayout.spec(row, rowSpan);
+
+        gridLayout.addView(view, params);
     }
 
     private class FetchApartments extends AsyncTask<String, String, String> {

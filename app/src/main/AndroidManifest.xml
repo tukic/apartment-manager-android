@@ -19,8 +19,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ShowReservations"></activity>
-        <activity android:name=".ShowReservation"></activity>
+        <activity android:name=".ShowReservations" android:configChanges="orientation|screenSize|keyboardHidden"></activity>
+        <activity android:name=".ShowReservation" android:configChanges="orientation|screenSize|keyboardHidden"></activity>
 
 
     </application>
