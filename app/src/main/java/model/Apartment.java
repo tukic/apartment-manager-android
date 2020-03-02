@@ -2,10 +2,14 @@ package model;
 
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 /**
@@ -97,6 +101,22 @@ public class Apartment implements java.io.Serializable {
 		return apartmentReservations;
 	}
 
+	public void putReservationInApartment(Reservation reservation) {
+		for(LocalDate date : getDatesBetweenUsingJava8(reservation.getCheckInDate(), reservation.getCheckOutDate())) {
+			apartmentReservations.put(date, reservation);
+		}
+	}
+
+	public static List<LocalDate> getDatesBetweenUsingJava8(
+			LocalDate startDate, LocalDate endDate) {
+
+		long numOfDaysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+		return IntStream.iterate(0, i -> i + 1)
+				.limit(numOfDaysBetween)
+				.mapToObj(i -> startDate.plusDays(i))
+				.collect(Collectors.toList());
+	}
+
     @Override
     public String toString() {
         return "Apartment{" +
@@ -108,7 +128,7 @@ public class Apartment implements java.io.Serializable {
                 ", apartmentNote='" + apartmentNote + '\'' +
                 ", pricepernights=" + pricepernights +
                 ", reservations=" + reservations +
-                ", apartmentReservations=" + apartmentReservations +
+                //", apartmentReservations=" + apartmentReservations +
                 '}';
     }
 }

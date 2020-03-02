@@ -1,15 +1,16 @@
 package com.ukic.app.appmanager;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
-import android.widget.CalendarView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -26,53 +27,63 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import enumerations.ReservationStatus;
 import model.Apartment;
 import model.Reservation;
 import model.Tourists;
 
+public class ShowReservations extends AppCompatActivity {
 
-public class MainActivity extends AppCompatActivity {
-
-
-    private Set<Apartment> apartments = new HashSet<>();
-
-    Button btnHit;
-    Button calendarViewBtn;
-    TextView txtJson;
     ProgressDialog pd;
+
+    TableLayout tableLayout;
+    Set<Apartment> apartments = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.calendar);
 
-        calendarViewBtn = (Button) findViewById(R.id.calendarBtn);
-        calendarViewBtn.setOnClickListener((v) -> {
-                Intent intent = new Intent(this, ShowReservations.class);
-                startActivity(intent);
+        tableLayout = (TableLayout) findViewById(R.id.table);
 
-        });
+        try {
+            new FetchApartments().execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments").get();
+            new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations").get();
+        } catch (InterruptedException | ExecutionException exp) {
+            exp.getStackTrace();
+        }
 
-
-        btnHit = (Button) findViewById(R.id.btnHit);
-        txtJson = (TextView) findViewById(R.id.tvJsonItem);
-        txtJson.setMovementMethod(new ScrollingMovementMethod());
-
-        //new FetchApartments().execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments");
-
-        btnHit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+        for (Apartment apartment : apartments) {
+            for (int i = 1; i <= 31; i++) {
+                TableRow tableRow = new TableRow(this);
+                tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                Button text = new Button(this);
+                String s = i + ": cijena" + apartment.getApartmentName() + ": ";
+                s += apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i)) == null ? "prazno" :  apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i)).getTourists().getName();
+                int fin = i;
+                text.setOnClickListener(l -> {
+                    Intent intent = new Intent(this, ShowReservation.class);
+                    intent.putExtra("reservation", apartment.getApartmentReservations().get(LocalDate.of(2019, 8, fin)));
+                    startActivity(intent);
+                });
+                text.setText(s);
+                text.setBackgroundColor(Color.GREEN);
+                text.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                tableRow.addView(text);
+                tableLayout.addView(tableRow, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
             }
-        });
-    }
+            break;
+        }
 
+
+
+
+
+    }
 
     private class FetchApartments extends AsyncTask<String, String, String> {
 
@@ -80,10 +91,10 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            pd = new ProgressDialog(MainActivity.this);
+            pd = new ProgressDialog(ShowReservations.this);
             pd.setMessage("Please wait");
             pd.setCancelable(false);
-            pd.show();
+            //pd.show();
         }
 
         @Override
@@ -94,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             BufferedReader reader = null;
 
             try {
+                System.out.println("ispis1");
                 URL url = new URL(params[0]);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
@@ -156,6 +168,8 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+
+
             return null;
         }
 
@@ -165,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
             if (pd.isShowing()){
                 pd.dismiss();
             }
-            txtJson.setText(result);
+
         }
 
     }
@@ -176,10 +190,10 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            pd = new ProgressDialog(MainActivity.this);
+            pd = new ProgressDialog(ShowReservations.this);
             pd.setMessage("Please wait");
             pd.setCancelable(false);
-            pd.show();
+            //pd.show();
         }
 
         protected String doInBackground(String... params) {
@@ -240,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
 
                         Long reservationId = obj.getLong("reservationId");
                         LocalDate checkInDate = LocalDate.parse(obj.getString("checkInDate"));
-                        LocalDate checkOutDate = LocalDate.parse(obj.getString("checkInDate"));
+                        LocalDate checkOutDate = LocalDate.parse(obj.getString("checkOutDate"));
                         BigDecimal pricePerNight = new BigDecimal(obj.getDouble("pricePerNight"));
                         BigDecimal totalPrice = new BigDecimal(obj.getDouble("totalPrice"));
                         ReservationStatus confirmed = ReservationStatus.reservation;
@@ -253,6 +267,9 @@ public class MainActivity extends AppCompatActivity {
 
                         //important.append("reservationId=").append(obj.getString("reservationId"));
                         //important.append("checkInDate=").append(obj.getString("checkInDate"));
+
+                        System.out.println("id: " + reservationId);
+                        apartment.putReservationInApartment(reservation);
 
                         important.append(reservation);
                     }
@@ -288,9 +305,6 @@ public class MainActivity extends AppCompatActivity {
             if (pd.isShowing()){
                 pd.dismiss();
             }
-            txtJson.setText(result);
-
-
         }
     }
 
@@ -307,4 +321,6 @@ public class MainActivity extends AppCompatActivity {
     public Set<Apartment> getApartments() {
         return apartments;
     }
+
+
 }
