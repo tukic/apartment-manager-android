@@ -8,8 +8,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CalendarView;
 import android.widget.GridLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -28,7 +30,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.Year;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -43,6 +48,8 @@ public class ShowReservations extends AppCompatActivity {
     ProgressDialog pd;
 
     GridLayout gridLayout;
+    private int month = 8;
+    private int year = 2019;
     Set<Apartment> apartments = new HashSet<>();
 
     @Override
@@ -59,33 +66,67 @@ public class ShowReservations extends AppCompatActivity {
             exp.getStackTrace();
         }
 
-        gridLayout.setColumnCount(31);
-        gridLayout.setRowCount(2);
 
-        for (int i = 1; i <= 31; i++) {
+        int lengthOfMonth = YearMonth.of(year, month).lengthOfMonth();
+        gridLayout.setColumnCount(lengthOfMonth);
+        gridLayout.setRowCount(apartments.size()+1);
+
+        for (int i = 1; i <= YearMonth.of(year, month).lengthOfMonth(); i++) {
             TextView textView = new TextView(this);
             textView.setBackgroundColor(Color.CYAN);
             textView.setText(new String(""+i));
-            textView.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+            textView.setGravity(Gravity.CENTER);
             addViewToGridLayout(textView, 0, i-1, 1, 1);
         }
 
+        int apartmentIndex = 0;
+
         for (Apartment apartment : apartments) {
-            for (int i = 0; i < 31; i++) {
+            for (int i = 0; i < lengthOfMonth; i++) {
 
                 Button text = new Button(this);
-                String s = i + ": cijena" + apartment.getApartmentName() + ": ";
-                s += apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i+1)) == null ? "prazno" :  apartment.getApartmentReservations().get(LocalDate.of(2019, 8, i+1)).getTourists().getName();
-                int fin = i;
-                text.setOnClickListener(l -> {
-                    Intent intent = new Intent(this, ShowReservation.class);
-                    intent.putExtra("reservation", apartment.getApartmentReservations().get(LocalDate.of(2019, 8, fin+1)));
-                    startActivity(intent);
-                });
-                text.setText(s);
-                text.setBackgroundColor(Color.GREEN);
-                text.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-                addViewToGridLayout(text, 1, i, 1, 1);
+
+                LocalDate date = LocalDate.of(year, month, i+1);
+                Reservation reservation = apartment.getApartmentReservations().get(date);
+
+                String s;
+                if(reservation != null) {
+                    s = reservation.getTourists().getName();
+                    text.setBackgroundColor(Color.RED);
+                    int fin = i;
+                    text.setOnClickListener(l -> {
+                        Intent intent = new Intent(this, ShowReservation.class);
+                        intent.putExtra("reservation", reservation);
+                        startActivity(intent);
+                    });
+                } else {
+                    s = "prazno";
+                    text.setBackgroundColor(Color.GREEN);
+                    text.setEnabled(false);
+                }
+
+                int reservationSpan = 0;
+                if(reservation != null) {
+                    while (reservation.equals(apartment.getApartmentReservations().get(date))) {
+                        date = date.plusDays(1);
+                        reservationSpan++;
+                    }
+                } else {
+                    while (apartment.getApartmentReservations().get(date)==null) {
+                        date = date.plusDays(1);
+                        reservationSpan++;
+                    }
+                }
+
+                if(i+reservationSpan > lengthOfMonth) {
+                    reservationSpan = lengthOfMonth - i;
+                }
+
+                if(reservationSpan > s.length()) {
+                    text.setText(s);
+                }
+                addViewToGridLayout(text, apartmentIndex+1, i, 1, reservationSpan);
+                i += reservationSpan-1;
 
                 /*
 
@@ -100,7 +141,7 @@ public class ShowReservations extends AppCompatActivity {
 
                  */
             }
-            break;
+            apartmentIndex++;
         }
 
 
@@ -111,7 +152,7 @@ public class ShowReservations extends AppCompatActivity {
 
     private void addViewToGridLayout(View view, int row, int column, int rowSpan, int columnSpan) {
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-        params.width = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.width = 50*columnSpan;
         params.height = GridLayout.LayoutParams.WRAP_CONTENT;
         params.columnSpec = GridLayout.spec(column, columnSpan);
         params.rowSpec = GridLayout.spec(row, rowSpan);
