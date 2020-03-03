@@ -1,20 +1,18 @@
 package com.ukic.app.appmanager;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.GridLayout;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -30,10 +28,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.Year;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -92,7 +88,11 @@ public class ShowReservations extends AppCompatActivity {
                 String s;
                 if(reservation != null) {
                     s = reservation.getTourists().getName();
-                    text.setBackgroundColor(Color.RED);
+                    //text.setBackgroundColor(Color.RED);
+                    Drawable img = ResourcesCompat.getDrawable(getResources(), R.drawable.button_date_reserved, null);
+                    //Drawable img = this.getResources().getDrawable( R.drawable.button_date_reserved );
+                    //text.setCompoundDrawablesWithIntrinsicBounds( img, null, null, null);
+                    text.setBackground(img);
                     int fin = i;
                     text.setOnClickListener(l -> {
                         Intent intent = new Intent(this, ShowReservation.class);
@@ -101,7 +101,9 @@ public class ShowReservations extends AppCompatActivity {
                     });
                 } else {
                     s = "prazno";
-                    text.setBackgroundColor(Color.GREEN);
+                    Drawable img = ResourcesCompat.getDrawable(getResources(), R.drawable.button_date_available, null);
+                    text.setBackground(img);
+                    //text.setBackgroundColor(Color.GREEN);
                     text.setEnabled(false);
                 }
 
