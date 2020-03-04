@@ -2,6 +2,7 @@ package com.ukic.app.appmanager;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -11,8 +12,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -44,16 +48,22 @@ public class ShowReservations extends AppCompatActivity {
     ProgressDialog pd;
 
     GridLayout gridLayout;
+    Spinner selectMonthSpinner;
+    Spinner selectYearSpinner;
+    private String[] monthsString = {"Lipanj", "Srpanj", "Kolovoz", "Rujan"};
+    private String[] yearsString = {"2018", "2019", "2020", "2021", "2022"};
     private int month = 8;
     private int year = 2019;
+    private int fontSize = 25;
     Set<Apartment> apartments = new HashSet<>();
+
+    boolean firstInit = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.calendar);
-
-        gridLayout = (GridLayout) findViewById(R.id.table);
+        //setContentView(R.layout.calendar);
+        //ridLayout = (GridLayout) findViewById(R.id.table);
 
         try {
             new FetchApartments().execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments").get();
@@ -62,22 +72,105 @@ public class ShowReservations extends AppCompatActivity {
             exp.getStackTrace();
         }
 
+        initScreen();
+    }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        //setContentView(R.layout.calendar);
+        initScreen();
+    }
+
+    void initScreen() {
+
+        setContentView(R.layout.calendar);
+        gridLayout = (GridLayout) findViewById(R.id.table);
+        selectMonthSpinner = (Spinner) findViewById(R.id.spinnerMonth);
+
+        ArrayAdapter<String> adapterMonth = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, monthsString);
+        adapterMonth.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectMonthSpinner.setAdapter(adapterMonth);
+        selectMonthSpinner.setSelection(month-6);
+
+        selectYearSpinner = (Spinner) findViewById(R.id.spinnerYear);
+        ArrayAdapter<String> adapterYear = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, yearsString);
+        adapterYear.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectYearSpinner.setAdapter(adapterYear);
+        selectYearSpinner.setSelection(year-2018);
+
+        selectMonthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                month = selectMonthSpinner.getSelectedItemPosition() + 6;
+                if(!firstInit)
+                {
+                    gridLayout.removeAllViews();
+                    monthYearChanged(month, year);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // do nothing
+            }
+        });
+
+        selectYearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                year = selectYearSpinner.getSelectedItemPosition() + 2018;
+                if(!firstInit)
+                {
+                    gridLayout.removeAllViews();
+                    monthYearChanged(month, year);
+                }
+                firstInit = false;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // do nothing
+            }
+        });
+
+        monthYearChanged(month, year);
+
+    }
+
+    private void monthYearChanged(int month, int year) {
         int lengthOfMonth = YearMonth.of(year, month).lengthOfMonth();
-        gridLayout.setColumnCount(lengthOfMonth);
-        gridLayout.setRowCount(apartments.size()+1);
+        gridLayout.setColumnCount(lengthOfMonth + 1);
+        gridLayout.setRowCount(apartments.size() + 1);
+
+        int firstCellWidth = 500;
+        int cellWidth = 150;
+        int firstCellHeight = 100;
+        int cellHeight = 250;
 
         for (int i = 1; i <= YearMonth.of(year, month).lengthOfMonth(); i++) {
             TextView textView = new TextView(this);
             textView.setBackgroundColor(Color.CYAN);
             textView.setText(new String(""+i));
             textView.setGravity(Gravity.CENTER);
-            addViewToGridLayout(textView, 0, i-1, 1, 1);
+            textView.setTextSize(fontSize);
+            addViewToGridLayout(textView, 0, i, 1, 1
+                    , cellWidth, firstCellHeight);
         }
 
         int apartmentIndex = 0;
 
         for (Apartment apartment : apartments) {
+
+            Button apartmentNameView = new Button(this);
+            apartmentNameView.setText(apartment.getApartmentName());
+            apartmentNameView.setBackgroundColor(Color.MAGENTA);
+            apartmentNameView.setTextSize(fontSize);
+            addViewToGridLayout(apartmentNameView, apartmentIndex+1
+                    , 0, 1, 1, firstCellWidth, cellHeight);
+
             for (int i = 0; i < lengthOfMonth; i++) {
 
                 Button text = new Button(this);
@@ -106,28 +199,34 @@ public class ShowReservations extends AppCompatActivity {
                     //text.setBackgroundColor(Color.GREEN);
                     text.setEnabled(false);
                 }
+                text.setTextSize(fontSize);
 
                 int reservationSpan = 0;
                 if(reservation != null) {
                     while (reservation.equals(apartment.getApartmentReservations().get(date))) {
                         date = date.plusDays(1);
                         reservationSpan++;
+                        if(i+reservationSpan > lengthOfMonth) {
+                            reservationSpan = lengthOfMonth - i;
+                            break;
+                        }
                     }
                 } else {
                     while (apartment.getApartmentReservations().get(date)==null) {
                         date = date.plusDays(1);
                         reservationSpan++;
+                        if(i+reservationSpan > lengthOfMonth) {
+                            reservationSpan = lengthOfMonth - i;
+                            break;
+                        }
                     }
                 }
 
-                if(i+reservationSpan > lengthOfMonth) {
-                    reservationSpan = lengthOfMonth - i;
-                }
-
-                if(reservationSpan > s.length()) {
+                if(3*reservationSpan > s.length()) {
                     text.setText(s);
                 }
-                addViewToGridLayout(text, apartmentIndex+1, i, 1, reservationSpan);
+                addViewToGridLayout(text, apartmentIndex+1, i+1, 1
+                        , reservationSpan, cellWidth, cellHeight);
                 i += reservationSpan-1;
 
                 /*
@@ -145,17 +244,14 @@ public class ShowReservations extends AppCompatActivity {
             }
             apartmentIndex++;
         }
-
-
-
-
-
     }
 
-    private void addViewToGridLayout(View view, int row, int column, int rowSpan, int columnSpan) {
+    private void addViewToGridLayout(View view, int row, int column, int rowSpan
+            , int columnSpan, int cellWidth, int cellHeight) {
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-        params.width = 50*columnSpan;
-        params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.width = cellWidth*columnSpan;
+        //params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.height = cellHeight;
         params.columnSpec = GridLayout.spec(column, columnSpan);
         params.rowSpec = GridLayout.spec(row, rowSpan);
 
@@ -171,7 +267,7 @@ public class ShowReservations extends AppCompatActivity {
             pd = new ProgressDialog(ShowReservations.this);
             pd.setMessage("Please wait");
             pd.setCancelable(false);
-            //pd.show();
+            pd.show();
         }
 
         @Override
@@ -267,9 +363,9 @@ public class ShowReservations extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            pd = new ProgressDialog(ShowReservations.this);
-            pd.setMessage("Please wait");
-            pd.setCancelable(false);
+            //pd = new ProgressDialog(ShowReservations.this);
+            //pd.setMessage("Please wait");
+            //pd.setCancelable(false);
             //pd.show();
         }
 
