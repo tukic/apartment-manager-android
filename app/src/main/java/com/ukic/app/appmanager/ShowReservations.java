@@ -1,5 +1,6 @@
 package com.ukic.app.appmanager;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -16,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -45,7 +47,8 @@ import model.Tourists;
 
 public class ShowReservations extends AppCompatActivity {
 
-    ProgressDialog pd;
+    ProgressBar pb;
+
 
     GridLayout gridLayout;
     Spinner selectMonthSpinner;
@@ -62,14 +65,24 @@ public class ShowReservations extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.calendar);
-        //ridLayout = (GridLayout) findViewById(R.id.table);
+        setContentView(R.layout.calendar);
 
+        /*
         try {
-            new FetchApartments().execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments").get();
-            new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations").get();
-        } catch (InterruptedException | ExecutionException exp) {
+            new FetchApartments(this).execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments");//.get();
+            //new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations").get();
+        } catch (Exception exp) {
             exp.getStackTrace();
+        }
+         */
+
+        Intent intent = this.getIntent();
+        Bundle bundle = intent.getExtras();
+
+        for (int i = 0; ; i++) {
+            Apartment apartment = (Apartment) bundle.getSerializable("apartment"+i);
+            if(apartment == null) break;
+            apartments.add(apartment);
         }
 
         initScreen();
@@ -100,6 +113,13 @@ public class ShowReservations extends AppCompatActivity {
         adapterYear.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         selectYearSpinner.setAdapter(adapterYear);
         selectYearSpinner.setSelection(year-2018);
+
+        pb = findViewById(R.id.progressBar);
+        if(firstInit) {
+            pb.setMax(100);
+            pb.setProgress(0);
+        }
+        pb.setVisibility(View.VISIBLE);
 
         selectMonthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -258,16 +278,18 @@ public class ShowReservations extends AppCompatActivity {
         gridLayout.addView(view, params);
     }
 
-    private class FetchApartments extends AsyncTask<String, String, String> {
+    private class FetchApartments extends AsyncTask<String, Integer, String> {
+
+        Activity activity;
+
+        public FetchApartments(Activity activity) {
+            this.activity = activity;
+        }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
-            pd = new ProgressDialog(ShowReservations.this);
-            pd.setMessage("Please wait");
-            pd.setCancelable(false);
-            pd.show();
         }
 
         @Override
@@ -278,6 +300,7 @@ public class ShowReservations extends AppCompatActivity {
             BufferedReader reader = null;
 
             try {
+
                 System.out.println("ispis1");
                 URL url = new URL(params[0]);
                 connection = (HttpURLConnection) url.openConnection();
@@ -303,7 +326,7 @@ public class ShowReservations extends AppCompatActivity {
                     int n = array.length();
 
                     for(int i = 0; i < n; i++) {
-
+                        publishProgress(40*i/n);
                         JSONObject obj = array.getJSONObject(i);
 
                         Integer apartmentId = obj.getInt("apartmentId");
@@ -317,6 +340,8 @@ public class ShowReservations extends AppCompatActivity {
                                 , apartmentName, internalName, apartmentNote, null));
 
                     }
+
+
 
                 } catch (JSONException exp) {
                     exp.printStackTrace();
@@ -342,31 +367,36 @@ public class ShowReservations extends AppCompatActivity {
                 }
             }
 
-
             return null;
         }
 
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if (pd.isShowing()){
-                pd.dismiss();
-            }
+            pb.setProgress(40);
+            try {
+                new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+            } catch (Exception e) {
+                e.printStackTrace();
 
+            }
         }
 
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            int prog = pb.getProgress();
+            prog++;
+            pb.setProgress(values[0]);
+        }
     }
 
-    private class JsonTask extends AsyncTask<String, String, String> {
+    private class JsonTask extends AsyncTask<String, Integer, String> {
 
 
         protected void onPreExecute() {
             super.onPreExecute();
 
-            //pd = new ProgressDialog(ShowReservations.this);
-            //pd.setMessage("Please wait");
-            //pd.setCancelable(false);
-            //pd.show();
         }
 
         protected String doInBackground(String... params) {
@@ -398,8 +428,10 @@ public class ShowReservations extends AppCompatActivity {
 
                 try {
                     JSONArray array = new JSONArray(buffer.toString());
+                    int n = array.length();
 
-                    for(int i = 0; i < array.length(); i++) {
+                    for(int i = 0; i < n; i++) {
+                        publishProgress(i*60/n);
 
                         JSONObject obj = array.getJSONObject(i);
 
@@ -475,9 +507,16 @@ public class ShowReservations extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if (pd.isShowing()){
-                pd.dismiss();
-            }
+            pb.setProgress(100);
+            initScreen();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            int prog = pb.getProgress();
+            prog++;
+            pb.setProgress(40+values[0]);
         }
     }
 

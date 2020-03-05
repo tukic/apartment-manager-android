@@ -1,15 +1,26 @@
 package com.ukic.app.appmanager;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CalendarView;
+import android.widget.GridLayout;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -25,6 +36,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashSet;
@@ -44,7 +56,9 @@ public class MainActivity extends AppCompatActivity {
     Button btnHit;
     Button calendarViewBtn;
     TextView txtJson;
-    ProgressDialog pd;
+    ProgressBar progressBar;
+
+    boolean firstInit = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,36 +68,53 @@ public class MainActivity extends AppCompatActivity {
         calendarViewBtn = (Button) findViewById(R.id.calendarBtn);
         calendarViewBtn.setOnClickListener((v) -> {
                 Intent intent = new Intent(this, ShowReservations.class);
+                Bundle bundle = new Bundle();
+                int i = 0;
+                for(Apartment apartment : apartments) {
+                    bundle.putSerializable("apartment" + i, apartment);
+                    i++;
+                }
+                intent.putExtras(bundle);
                 startActivity(intent);
 
         });
 
 
+        progressBar = findViewById(R.id.progressBar2);
+
         btnHit = (Button) findViewById(R.id.btnHit);
         txtJson = (TextView) findViewById(R.id.tvJsonItem);
         txtJson.setMovementMethod(new ScrollingMovementMethod());
 
-        //new FetchApartments().execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments");
+        if(firstInit) {
+            progressBar.setProgress(0);
+            calendarViewBtn.setEnabled(false);
+            new FetchApartments(this).execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments");
+            firstInit = false;
+        }
 
         btnHit.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
-                new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+                //new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+                System.out.println("btn clicked");
             }
+
         });
     }
 
 
-    private class FetchApartments extends AsyncTask<String, String, String> {
+    private class FetchApartments extends AsyncTask<String, Integer, String> {
+
+        Activity activity;
+
+        public FetchApartments(Activity activity) {
+            this.activity = activity;
+        }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
-            pd = new ProgressDialog(MainActivity.this);
-            pd.setMessage("Please wait");
-            pd.setCancelable(false);
-            pd.show();
         }
 
         @Override
@@ -94,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
             BufferedReader reader = null;
 
             try {
+
+                System.out.println("ispis1");
                 URL url = new URL(params[0]);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
@@ -118,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     int n = array.length();
 
                     for(int i = 0; i < n; i++) {
-
+                        publishProgress(40*i/n);
                         JSONObject obj = array.getJSONObject(i);
 
                         Integer apartmentId = obj.getInt("apartmentId");
@@ -132,6 +165,8 @@ public class MainActivity extends AppCompatActivity {
                                 , apartmentName, internalName, apartmentNote, null));
 
                     }
+
+
 
                 } catch (JSONException exp) {
                     exp.printStackTrace();
@@ -156,30 +191,35 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+
             return null;
         }
 
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if (pd.isShowing()){
-                pd.dismiss();
+            progressBar.setProgress(40);
+            try {
+                new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+            } catch (Exception e) {
+                e.printStackTrace();
+
             }
-            txtJson.setText(result);
         }
 
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            progressBar.setProgress(values[0]);
+        }
     }
 
-    private class JsonTask extends AsyncTask<String, String, String> {
+    private class JsonTask extends AsyncTask<String, Integer, String> {
 
 
         protected void onPreExecute() {
             super.onPreExecute();
 
-            pd = new ProgressDialog(MainActivity.this);
-            pd.setMessage("Please wait");
-            pd.setCancelable(false);
-            pd.show();
         }
 
         protected String doInBackground(String... params) {
@@ -211,8 +251,10 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     JSONArray array = new JSONArray(buffer.toString());
+                    int n = array.length();
 
-                    for(int i = 0; i < array.length(); i++) {
+                    for(int i = 0; i < n; i++) {
+                        publishProgress(i*60/n);
 
                         JSONObject obj = array.getJSONObject(i);
 
@@ -240,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
 
                         Long reservationId = obj.getLong("reservationId");
                         LocalDate checkInDate = LocalDate.parse(obj.getString("checkInDate"));
-                        LocalDate checkOutDate = LocalDate.parse(obj.getString("checkInDate"));
+                        LocalDate checkOutDate = LocalDate.parse(obj.getString("checkOutDate"));
                         BigDecimal pricePerNight = new BigDecimal(obj.getDouble("pricePerNight"));
                         BigDecimal totalPrice = new BigDecimal(obj.getDouble("totalPrice"));
                         ReservationStatus confirmed = ReservationStatus.reservation;
@@ -253,6 +295,9 @@ public class MainActivity extends AppCompatActivity {
 
                         //important.append("reservationId=").append(obj.getString("reservationId"));
                         //important.append("checkInDate=").append(obj.getString("checkInDate"));
+
+                        System.out.println("id: " + reservationId);
+                        apartment.putReservationInApartment(reservation);
 
                         important.append(reservation);
                     }
@@ -285,12 +330,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if (pd.isShowing()){
-                pd.dismiss();
-            }
-            txtJson.setText(result);
+            progressBar.setProgress(100);
+            calendarViewBtn.setEnabled(true);
+        }
 
-
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            progressBar.setProgress(40+values[0]);
         }
     }
 
@@ -307,4 +354,7 @@ public class MainActivity extends AppCompatActivity {
     public Set<Apartment> getApartments() {
         return apartments;
     }
+
 }
+
+
