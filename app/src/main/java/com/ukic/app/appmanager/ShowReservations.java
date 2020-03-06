@@ -4,10 +4,21 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -17,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridLayout;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -57,7 +69,7 @@ public class ShowReservations extends AppCompatActivity {
     private String[] yearsString = {"2018", "2019", "2020", "2021", "2022"};
     private int month = 8;
     private int year = 2019;
-    private int fontSize = 25;
+    private int fontSize = 20;
     Set<Apartment> apartments = new HashSet<>();
 
     boolean firstInit = true;
@@ -202,10 +214,80 @@ public class ShowReservations extends AppCompatActivity {
                 if(reservation != null) {
                     s = reservation.getTourists().getName();
                     //text.setBackgroundColor(Color.RED);
-                    Drawable img = ResourcesCompat.getDrawable(getResources(), R.drawable.button_date_reserved, null);
-                    //Drawable img = this.getResources().getDrawable( R.drawable.button_date_reserved );
-                    //text.setCompoundDrawablesWithIntrinsicBounds( img, null, null, null);
-                    text.setBackground(img);
+                    //Drawable img = ResourcesCompat.getDrawable(getResources(), R.drawable.btn, null);
+
+
+                    Drawable gd = new Drawable() {
+                        @Override
+                        public void draw(@NonNull Canvas canvas) {
+                            int n = text.getWidth()/cellWidth;
+                            for(int i = 0; i < n; i++) {
+                                float startX = cellWidth*i;
+                                float endX = cellWidth*(i+1);
+                                Paint paint = new Paint();
+                                paint.setColor(Color.RED);
+                                paint.setStrokeWidth(3);
+                                if(i%2==1) paint.setAlpha(paint.getAlpha()-50);
+                                if(i==0) {
+                                    canvas.drawRect(startX+5, cellHeight-5, endX, 5, paint);
+                                    paint.setStyle(Paint.Style.STROKE);
+                                    paint.setColor(Color.rgb(200, 20, 20));
+                                    canvas.drawRect(startX+5, cellHeight-5, endX, 5, paint);
+                                }
+                                else if(i+1 >= n) {
+                                    canvas.drawRect(startX, cellHeight-5, endX-5, 5, paint);
+                                    paint.setStyle(Paint.Style.STROKE);
+                                    paint.setColor(Color.rgb(200, 20, 20));
+                                    canvas.drawRect(startX, cellHeight-5, endX-5, 5, paint);
+                                }
+                                else {
+                                    canvas.drawRect(startX, cellHeight-5, endX, 5, paint);
+                                    paint.setStyle(Paint.Style.STROKE);
+                                    paint.setColor(Color.rgb(200, 20, 20));
+                                    canvas.drawRect(startX, cellHeight-5, endX, 5, paint);
+                                }
+
+                                if(endX >= text.getWidth()) break;
+                            }
+                        }
+
+                        @Override
+                        public void setAlpha(int i) {
+
+                        }
+
+                        @Override
+                        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+
+                        }
+
+                        @Override
+                        public int getOpacity() {
+                            return 0;
+                        }
+                    };
+                    //gd.setColor(Color.RED);
+                    /*
+                    Canvas canvas = new Canvas();
+                    Paint paint = new Paint();
+                    paint.setStrokeWidth(15);
+                    paint.setColor(Color.BLACK);
+                    canvas.drawLine(0.5f, 0.0f, 0.5f, 1.0f, paint);
+                    gd.setBounds(0,100,100,0);
+                    canvas.drawPaint(paint);
+
+
+                    System.out.println("alpha="+gd.getAlpha());
+                    System.out.println("bounds="+gd.getBounds());
+                    System.out.println("top="+text.getPaddingLeft()+text.getPaddingTop()+text.getPaddingRight()+text.getPaddingTop());
+
+                    int[] colors = {Color.RED, Color.WHITE};
+                    //gd.setColors(colors);
+
+                    //gd.setCornerRadius(15);
+                    //gd.setStroke(5, Color.BLACK);
+                    */
+                    text.setBackground(gd);
                     int fin = i;
                     text.setOnClickListener(l -> {
                         Intent intent = new Intent(this, ShowReservation.class);
@@ -517,6 +599,40 @@ public class ShowReservations extends AppCompatActivity {
             int prog = pb.getProgress();
             prog++;
             pb.setProgress(40+values[0]);
+        }
+    }
+
+    class LineDrawable extends Drawable {
+        private Paint mPaint;
+
+        public LineDrawable() {
+            mPaint = new Paint();
+            mPaint.setStrokeWidth(5);
+            mPaint.setColor(Color.BLACK);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            canvas.drawLine(50, 0, 50, 100, mPaint);
+        }
+
+        @Override
+        protected boolean onLevelChange(int level) {
+            invalidateSelf();
+            return true;
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+        }
+
+        @Override
+        public void setColorFilter(ColorFilter cf) {
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
         }
     }
 
