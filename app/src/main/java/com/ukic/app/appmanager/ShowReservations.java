@@ -19,6 +19,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -36,6 +38,7 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -97,6 +100,7 @@ public class ShowReservations extends AppCompatActivity {
             apartments.add(apartment);
         }
 
+        // change to initScreen2()
         initScreen();
     }
 
@@ -177,6 +181,8 @@ public class ShowReservations extends AppCompatActivity {
         gridLayout.setColumnCount(lengthOfMonth + 1);
         gridLayout.setRowCount(apartments.size() + 1);
 
+
+
         int firstCellWidth = 500;
         int cellWidth = 150;
         int firstCellHeight = 100;
@@ -206,7 +212,6 @@ public class ShowReservations extends AppCompatActivity {
             for (int i = 0; i < lengthOfMonth; i++) {
 
                 Button text = new Button(this);
-
                 LocalDate date = LocalDate.of(year, month, i+1);
                 Reservation reservation = apartment.getApartmentReservations().get(date);
 
@@ -329,6 +334,7 @@ public class ShowReservations extends AppCompatActivity {
                 }
                 addViewToGridLayout(text, apartmentIndex+1, i+1, 1
                         , reservationSpan, cellWidth, cellHeight);
+
                 i += reservationSpan-1;
 
                 /*
@@ -350,15 +356,61 @@ public class ShowReservations extends AppCompatActivity {
 
     private void addViewToGridLayout(View view, int row, int column, int rowSpan
             , int columnSpan, int cellWidth, int cellHeight) {
-        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-        params.width = cellWidth*columnSpan;
-        //params.height = GridLayout.LayoutParams.WRAP_CONTENT;
-        params.height = cellHeight;
-        params.columnSpec = GridLayout.spec(column, columnSpan);
-        params.rowSpec = GridLayout.spec(row, rowSpan);
 
-        gridLayout.addView(view, params);
+        TextView textView = new TextView(this);
+        textView.setBackgroundColor(Color.rgb(191,98,98));
+        textView.setId(textView.generateViewId());
+        textView.setWidth(cellWidth*columnSpan);
+        textView.setHeight(cellHeight);
+
+        ConstraintLayout layout = new ConstraintLayout(this);
+        layout.addView(textView);
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(layout);
+
+        constraintSet.connect(layout.getId(), constraintSet.TOP, textView.getId(), ConstraintSet.TOP,0);
+        //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
+        constraintSet.applyTo(layout);
+
+        TextView textView2 = new TextView(this);
+        textView2.setBackgroundColor(Color.rgb(50,0,0));
+        textView2.setId(textView2.generateViewId());
+        textView2.setWidth(cellWidth*columnSpan);
+        textView2.setHeight(cellHeight-20);
+
+
+        layout.addView(textView2);
+        constraintSet.clone(layout);
+        constraintSet.connect(layout.getId(), constraintSet.TOP, textView2.getId(), ConstraintSet.TOP,10);
+        //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
+        constraintSet.applyTo(layout);
+
+
+        /*
+        //ConstraintLayout.LayoutParams params;
+        params.width = cellWidth*columnSpan-42;
+        //params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.height = cellHeight-42;
+
+        layout.addView(view, params);
+
+        params.width=cellWidth*columnSpan;
+        params.height=cellHeight;
+
+        layout.addView(view, params);
+
+         */
+
+        GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+        paramsGrid.columnSpec = GridLayout.spec(column, columnSpan);
+        paramsGrid.rowSpec = GridLayout.spec(row, rowSpan);
+        paramsGrid.height=cellHeight;
+        paramsGrid.width=cellWidth*columnSpan;
+        gridLayout.addView(view, paramsGrid);
     }
+
+
+
 
     private class FetchApartments extends AsyncTask<String, Integer, String> {
 
@@ -650,5 +702,229 @@ public class ShowReservations extends AppCompatActivity {
         return apartments;
     }
 
+    /*
+
+        -----
+
+     */
+
+    void initScreen2() {
+
+        setContentView(R.layout.calendar);
+        gridLayout = (GridLayout) findViewById(R.id.table);
+        selectMonthSpinner = (Spinner) findViewById(R.id.spinnerMonth);
+
+        ArrayAdapter<String> adapterMonth = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, monthsString);
+        adapterMonth.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectMonthSpinner.setAdapter(adapterMonth);
+        selectMonthSpinner.setSelection(month-6);
+
+        selectYearSpinner = (Spinner) findViewById(R.id.spinnerYear);
+        ArrayAdapter<String> adapterYear = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, yearsString);
+        adapterYear.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectYearSpinner.setAdapter(adapterYear);
+        selectYearSpinner.setSelection(year-2018);
+
+        pb = findViewById(R.id.progressBar);
+        if(firstInit) {
+            pb.setMax(100);
+            pb.setProgress(0);
+        }
+        pb.setVisibility(View.VISIBLE);
+
+        selectMonthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                month = selectMonthSpinner.getSelectedItemPosition() + 6;
+                if(!firstInit)
+                {
+                    gridLayout.removeAllViews();
+                    monthYearChanged2(month, year);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // do nothing
+            }
+        });
+
+        selectYearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                year = selectYearSpinner.getSelectedItemPosition() + 2018;
+                if(!firstInit)
+                {
+                    gridLayout.removeAllViews();
+                    monthYearChanged2(month, year);
+                }
+                firstInit = false;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // do nothing
+            }
+        });
+
+        monthYearChanged2(month, year);
+
+    }
+
+    private void monthYearChanged2(int month, int year) {
+        int lengthOfMonth = YearMonth.of(year, month).lengthOfMonth();
+        gridLayout.setColumnCount(lengthOfMonth + 1);
+        gridLayout.setRowCount(apartments.size() + 1);
+
+
+        int firstCellWidth = 500;
+        int cellWidth = 150;
+        int firstCellHeight = 80;
+        int cellHeight = 200;
+
+        for (int i = 1; i <= YearMonth.of(year, month).lengthOfMonth(); i++) {
+            TextView textView = new TextView(this);
+            if(i%2==1) textView.setBackgroundColor(Color.WHITE);
+            else textView.setBackgroundColor(Color.CYAN);
+            textView.setText(new String(""+i));
+            textView.setGravity(Gravity.CENTER);
+            textView.setTextSize(fontSize);
+            addViewToGridLayout2(textView, 0, i, 1, 1
+                    , cellWidth, firstCellHeight);
+        }
+
+        int apartmentIndex = 0;
+
+        for (Apartment apartment : apartments) {
+
+            TextView apartmentNameView = new TextView(this);
+            apartmentNameView.setText(apartment.getApartmentName());
+            apartmentNameView.setBackgroundColor(Color.MAGENTA);
+            //apartmentNameView.setTextSize(fontSize);
+            addViewToGridLayout2(apartmentNameView, apartmentIndex+1
+                    , 0, 1, 1, firstCellWidth, cellHeight);
+
+            for (int i = 0; i < lengthOfMonth; i++) {
+
+                //Button text = new Button(this);
+                TextView text = new TextView(this);
+                LocalDate date = LocalDate.of(year, month, i+1);
+                Reservation reservation = apartment.getApartmentReservations().get(date);
+
+                String s;
+
+                Drawable imgW = ResourcesCompat.getDrawable(getResources(), R.drawable.date_white, null);
+                Drawable imgG = ResourcesCompat.getDrawable(getResources(), R.drawable.date_gray, null);
+                if(i%2==1) text.setBackground(imgG);
+                else text.setBackground(imgW);
+
+                /*if(i%2==1) text.setBackgroundColor(Color.CYAN);
+                else text.setBackgroundColor(Color.WHITE);
+                 */
+
+                int fin = i;
+
+                text.setOnClickListener(l -> {
+                    Intent intent = new Intent(this, ShowReservation.class);
+                    intent.putExtra("reservation", reservation);
+                    startActivity(intent);
+                });
+
+
+                addViewToGridLayout2(text, apartmentIndex+1, i+1, 1
+                        , 1, cellWidth, cellHeight);
+
+            }
+            apartmentIndex++;
+        }
+
+        TextView vt = new TextView(this);
+        //vt.setText("dljGI");
+        vt.setWidth(6*cellWidth-200);
+        vt.setHeight(cellHeight-25);
+        vt.setBackgroundColor(Color.MAGENTA);
+
+        GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+        paramsGrid.columnSpec = GridLayout.spec(5, 6);
+        paramsGrid.rowSpec = GridLayout.spec(2, 1);
+        /*paramsGrid.height=cellHeight-10;
+        paramsGrid.width=cellWidth-10;*/
+        paramsGrid.setGravity(Gravity.CENTER);
+        gridLayout.addView(vt, paramsGrid);
+
+
+        //
+        TextView vt2 = new TextView(this);
+        //vt.setText("dljGI");
+        vt2.setWidth(2*cellWidth-200);
+        vt2.setHeight(cellHeight-25);
+        vt2.setBackgroundColor(Color.GREEN);
+
+        GridLayout.LayoutParams paramsGrid2 = new GridLayout.LayoutParams();
+        paramsGrid2.columnSpec = GridLayout.spec(10, 2);
+        paramsGrid2.rowSpec = GridLayout.spec(2, 1);
+        /*paramsGrid.height=cellHeight-10;
+        paramsGrid.width=cellWidth-10;*/
+        paramsGrid2.setGravity(Gravity.CENTER);
+        gridLayout.addView(vt2, paramsGrid2);
+    }
+
+    private void addViewToGridLayout2(View view, int row, int column, int rowSpan
+            , int columnSpan, int cellWidth, int cellHeight) {
+
+        /*
+        TextView textView = new TextView(this);
+        textView.setBackgroundColor(Color.rgb(191,98,98));
+        textView.setId(textView.generateViewId());
+        textView.setWidth(cellWidth*columnSpan);
+        textView.setHeight(cellHeight);
+
+        ConstraintLayout layout = new ConstraintLayout(this);
+        layout.addView(textView);
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(layout);
+
+        constraintSet.connect(layout.getId(), constraintSet.TOP, textView.getId(), ConstraintSet.TOP,0);
+        //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
+        constraintSet.applyTo(layout);
+
+        TextView textView2 = new TextView(this);
+        textView2.setBackgroundColor(Color.rgb(50,0,0));
+        textView2.setId(textView2.generateViewId());
+        textView2.setWidth(cellWidth*columnSpan);
+        textView2.setHeight(cellHeight-20);
+
+
+        layout.addView(textView2);
+        constraintSet.clone(layout);
+        constraintSet.connect(layout.getId(), constraintSet.TOP, textView2.getId(), ConstraintSet.TOP,10);
+        //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
+        constraintSet.applyTo(layout);
+        */
+
+        /*
+        //ConstraintLayout.LayoutParams params;
+        params.width = cellWidth*columnSpan-42;
+        //params.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        params.height = cellHeight-42;
+
+        layout.addView(view, params);
+
+        params.width=cellWidth*columnSpan;
+        params.height=cellHeight;
+
+        layout.addView(view, params);
+
+         */
+
+        GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+        paramsGrid.columnSpec = GridLayout.spec(column, columnSpan);
+        paramsGrid.rowSpec = GridLayout.spec(row, rowSpan);
+        paramsGrid.height=cellHeight;
+        paramsGrid.width=cellWidth*columnSpan;
+        gridLayout.addView(view, paramsGrid);
+    }
 
 }
