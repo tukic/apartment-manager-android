@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">App Manager</string>
+    <string name="loadingReservationsStr">Učitavanje rezervacija!\nMolim pričekajte...</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="refresh_str">Osvježi</string>
+    <string name="new_reservation_str">Nova rezervacija</string>
 </resources>

@@ -1,23 +1,27 @@
 package com.ukic.app.appmanager;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.GridLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -38,7 +42,6 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,15 +51,25 @@ import model.Reservation;
 import model.Tourists;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
 
     private Set<Apartment> apartments = new HashSet<>();
+    TextView loadingReservationsTextView;
 
-    Button btnHit;
-    Button calendarViewBtn;
-    TextView txtJson;
     ProgressBar progressBar;
+
+    private DrawerLayout drawer;
+    Toolbar toolbar;
+
+    GridLayout gridLayout;
+    Spinner selectMonthSpinner;
+    Spinner selectYearSpinner;
+    private String[] monthsString = {"Lipanj", "Srpanj", "Kolovoz", "Rujan"};
+    private String[] yearsString = {"2018", "2019", "2020", "2021", "2022"};
+    private int month = 8;
+    private int year = 2019;
+    private int fontSize = 20;
 
     boolean firstInit = true;
 
@@ -65,43 +78,52 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        calendarViewBtn = (Button) findViewById(R.id.calendarBtn);
-        calendarViewBtn.setOnClickListener((v) -> {
-                Intent intent = new Intent(this, ShowReservations.class);
-                Bundle bundle = new Bundle();
-                int i = 0;
-                for(Apartment apartment : apartments) {
-                    bundle.putSerializable("apartment" + i, apartment);
-                    i++;
-                }
-                intent.putExtras(bundle);
-                startActivity(intent);
-
-        });
-
+        loadingReservationsTextView = findViewById(R.id.loadingReservationsTxtViewId);
+        loadingReservationsTextView.setText(R.string.loadingReservationsStr);
 
         progressBar = findViewById(R.id.progressBar2);
 
-        btnHit = (Button) findViewById(R.id.btnHit);
-        txtJson = (TextView) findViewById(R.id.tvJsonItem);
-        txtJson.setMovementMethod(new ScrollingMovementMethod());
-
         if(firstInit) {
             progressBar.setProgress(0);
-            calendarViewBtn.setEnabled(false);
             new FetchApartments(this).execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments");
             firstInit = false;
         }
 
-        btnHit.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
-                System.out.println("btn clicked");
-            }
-
-        });
     }
 
+    @Override
+    public void onBackPressed() {
+        if(drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        switch(menuItem.getItemId()) {
+            case R.id.new_reservation_opt:
+                Intent intent = new Intent(this, NewReservation.class);
+                startActivity(intent);
+                break;
+
+            case R.id.refresh:
+                progressBar.setProgress(0);
+                apartments.clear();
+                new FetchApartments(this).execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments");
+                firstInit = false;
+                break;
+
+            default:
+                break;
+        }
+
+        drawer.closeDrawer(GravityCompat.START);
+
+        return true;
+    }
 
     private class FetchApartments extends AsyncTask<String, Integer, String> {
 
@@ -200,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(result);
             progressBar.setProgress(40);
             try {
-                new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+                new JsonTask(activity).execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
             } catch (Exception e) {
                 e.printStackTrace();
 
@@ -216,6 +238,9 @@ public class MainActivity extends AppCompatActivity {
 
     private class JsonTask extends AsyncTask<String, Integer, String> {
 
+        Activity activity;
+
+        public JsonTask(Activity activity) { this.activity = activity; }
 
         protected void onPreExecute() {
             super.onPreExecute();
@@ -330,8 +355,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
+
+            Intent intent = new Intent(activity, ShowReservations.class);
+            Bundle bundle = new Bundle();
+            int i = 0;
+            for(Apartment apartment : apartments) {
+                bundle.putSerializable("apartment" + i, apartment);
+                i++;
+            }
+            intent.putExtras(bundle);
+            //startActivity(intent);
+
+            loadingFinished(activity);
             progressBar.setProgress(100);
-            calendarViewBtn.setEnabled(true);
+
         }
 
         @Override
@@ -353,6 +390,288 @@ public class MainActivity extends AppCompatActivity {
 
     public Set<Apartment> getApartments() {
         return apartments;
+    }
+
+    public void loadingFinished(Activity activity) {
+        activity.setContentView(R.layout.calendar);
+        drawer = findViewById(R.id.drawer_layout);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        final ActionBar actionBar = getSupportActionBar();
+
+        initReservationsScreen(activity);
+    }
+
+    public void initReservationsScreen(Activity activity) {
+        gridLayout = (GridLayout) findViewById(R.id.table);
+        selectMonthSpinner = (Spinner) findViewById(R.id.spinnerMonth);
+
+        ArrayAdapter<String> adapterMonth = new ArrayAdapter<String>(activity,
+                android.R.layout.simple_spinner_item, monthsString);
+        adapterMonth.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectMonthSpinner.setAdapter(adapterMonth);
+        selectMonthSpinner.setSelection(month-6);
+
+        selectYearSpinner = (Spinner) findViewById(R.id.spinnerYear);
+        ArrayAdapter<String> adapterYear = new ArrayAdapter<String>(activity,
+                android.R.layout.simple_spinner_item, yearsString);
+        adapterYear.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        selectYearSpinner.setAdapter(adapterYear);
+        selectYearSpinner.setSelection(year-2018);
+
+        progressBar = findViewById(R.id.progressBar);
+        if(firstInit) {
+            progressBar.setMax(100);
+            progressBar.setProgress(0);
+        }
+        progressBar.setVisibility(View.VISIBLE);
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_bar);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        selectMonthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                month = selectMonthSpinner.getSelectedItemPosition() + 6;
+                if(!firstInit)
+                {
+                    gridLayout.removeAllViews();
+                    monthYearChanged(month, year);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // do nothing
+            }
+        });
+
+        selectYearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                year = selectYearSpinner.getSelectedItemPosition() + 2018;
+                if(!firstInit)
+                {
+                    gridLayout.removeAllViews();
+                    monthYearChanged(month, year);
+                }
+                firstInit = false;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // do nothing
+            }
+        });
+
+        monthYearChanged(month, year);
+    }
+
+    public void monthYearChanged(int month, int year) {
+        int lengthOfMonth = YearMonth.of(year, month).lengthOfMonth();
+        gridLayout.setColumnCount(lengthOfMonth + 1);
+        gridLayout.setRowCount(apartments.size() + 1);
+
+
+        int firstCellWidth = 500;
+        int cellWidth = 150;
+        int cellWidthCut = 90;
+        int firstCellHeight = 80;
+        int cellHeight = 200;
+        int cellHeightCut = 50;
+
+        for (int i = 1; i <= YearMonth.of(year, month).lengthOfMonth(); i++) {
+            TextView textView = new TextView(this);
+            if(i%2==1) textView.setBackgroundColor(Color.WHITE);
+            else textView.setBackgroundColor(Color.CYAN);
+            textView.setText(new String(""+i));
+            textView.setGravity(Gravity.CENTER);
+            textView.setTextSize(fontSize);
+                            /*text.setOnClickListener(l -> {
+                    Intent intent = new Intent(this, ShowReservation.class);
+                    intent.putExtra("reservation", reservation);
+                    startActivity(intent);
+                });*/
+            addViewToGridLayout(textView, 0, i, 1, 1
+                    , cellWidth, firstCellHeight);
+        }
+
+        int apartmentIndex = 0;
+
+        for (Apartment apartment : apartments) {
+
+            TextView apartmentNameView = new TextView(this);
+            apartmentNameView.setText(apartment.getApartmentName());
+            apartmentNameView.setBackgroundColor(Color.MAGENTA);
+
+            addViewToGridLayout(apartmentNameView, apartmentIndex+1
+                    , 0, 1, 1, firstCellWidth, cellHeight);
+
+            for (int i = 0; i < lengthOfMonth; i++) {
+
+                //Button text = new Button(this);
+                TextView text = new TextView(this);
+                LocalDate date = LocalDate.of(year, month, i + 1);
+                Reservation reservation = apartment.getApartmentReservations().get(date);
+
+                Drawable imgW = ResourcesCompat.getDrawable(getResources(), R.drawable.date_white, null);
+                Drawable imgG = ResourcesCompat.getDrawable(getResources(), R.drawable.date_gray, null);
+                if (i % 2 == 1) text.setBackground(imgG);
+                else text.setBackground(imgW);
+
+                addViewToGridLayout(text, apartmentIndex + 1, i + 1, 1
+                        , 1, cellWidth, cellHeight);
+            }
+
+            for (int i = 0; i < lengthOfMonth; i++) {
+                /*if(i%2==1) text.setBackgroundColor(Color.CYAN);
+                else text.setBackgroundColor(Color.WHITE);
+                 */
+
+                LocalDate date = LocalDate.of(year, month, i + 1);
+                Reservation reservation = apartment.getApartmentReservations().get(date);
+                String s = "";
+                if(reservation != null) s = reservation.getTourists().getName();
+
+                TextView reservationTextView = new TextView(this);
+
+                if(i == 0) {
+                    Reservation lastRes = apartment.getApartmentReservations().get(date.minusDays(1));
+                    if(lastRes != null) {
+
+                        int reservationSpan = 1;
+                        if(reservation != null) {
+                            LocalDate tmpDate = date;
+                            Reservation tmpRes = reservation;
+                            for(; tmpRes != null && tmpRes.equals(lastRes)
+                                    && reservationSpan <= YearMonth.of(year, month).lengthOfMonth(); reservationSpan++) {
+                                int day = reservationSpan;
+                                tmpRes = apartment.getApartmentReservations().get(LocalDate.of(year, month, day));
+
+                            }
+
+                        }
+
+                        s = lastRes.getTourists().getName();
+
+                        reservationTextView.setWidth(reservationSpan*cellWidth-cellWidthCut);
+                        reservationTextView.setHeight(cellHeight-cellHeightCut);
+                        reservationTextView.setBackgroundColor(Color.YELLOW);
+                        if(3*reservationSpan > s.length()) {
+                            reservationTextView.setText(s);
+                        }
+
+                        GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+                        paramsGrid.columnSpec = GridLayout.spec(1, reservationSpan);
+                        paramsGrid.rowSpec = GridLayout.spec(apartmentIndex+1, 1);
+                        paramsGrid.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                        gridLayout.addView(reservationTextView, paramsGrid);
+
+                        reservationTextView.setOnClickListener(l -> {
+                            Intent intent = new Intent(this, ShowReservation.class);
+                            intent.putExtra("reservation", lastRes);
+                            startActivity(intent);
+                        });
+                        reservationTextView.setGravity(Gravity.CENTER);
+
+                        i += reservationSpan-1;
+                        continue;
+                    }
+                }
+
+                else {
+
+
+                    if(reservation != null) {
+                        int reservationSpan = 0;
+                        while (reservation.equals(apartment.getApartmentReservations().get(date))) {
+                            date = date.plusDays(1);
+                            reservationSpan++;
+                            if(i+reservationSpan >= lengthOfMonth+1) {
+                                reservationSpan = lengthOfMonth-i+1;
+                                break;
+                            }
+                        }
+
+                        if(i+reservationSpan >= lengthOfMonth+1) {
+                            reservationTextView = new TextView(this);
+
+                            reservationTextView.setWidth(reservationSpan * cellWidth - cellWidthCut);
+                            reservationTextView.setHeight(cellHeight - cellHeightCut);
+                            reservationTextView.setBackgroundColor(Color.YELLOW);
+                            if(3*reservationSpan > s.length()) {
+                                reservationTextView.setText(s);
+                            }
+
+                            GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+                            paramsGrid.columnSpec = GridLayout.spec(i, reservationSpan);
+                            paramsGrid.rowSpec = GridLayout.spec(apartmentIndex + 1, 1);
+                            paramsGrid.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+
+                            reservationTextView.setOnClickListener(l -> {
+                                Intent intent = new Intent(this, ShowReservation.class);
+                                intent.putExtra("reservation", reservation);
+                                startActivity(intent);
+                            });
+                            reservationTextView.setGravity(Gravity.CENTER);
+
+                            gridLayout.addView(reservationTextView, paramsGrid);
+
+                            break;
+
+                        } else {
+
+                            reservationTextView = new TextView(this);
+
+                            reservationTextView.setWidth((reservationSpan + 1) * cellWidth - 2 * cellWidthCut);
+                            reservationTextView.setHeight(cellHeight - cellHeightCut);
+                            reservationTextView.setBackgroundColor(Color.YELLOW);
+                            if(3*reservationSpan > s.length()) {
+                                reservationTextView.setText(s);
+                            }
+
+                            GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+                            paramsGrid.columnSpec = GridLayout.spec(i, reservationSpan + 1);
+                            paramsGrid.rowSpec = GridLayout.spec(apartmentIndex + 1, 1);
+                            paramsGrid.setGravity(Gravity.CENTER);
+
+                            reservationTextView.setOnClickListener(l -> {
+                                Intent intent = new Intent(this, ShowReservation.class);
+                                intent.putExtra("reservation", reservation);
+                                startActivity(intent);
+                            });
+                            reservationTextView.setGravity(Gravity.CENTER);
+
+                            gridLayout.addView(reservationTextView, paramsGrid);
+
+                            i += reservationSpan - 1;
+                            continue;
+                        }
+
+
+                    }
+                }
+
+            }
+            apartmentIndex++;
+        }
+    }
+
+    public void addViewToGridLayout(View view, int row, int column, int rowSpan
+            , int columnSpan, int cellWidth, int cellHeight) {
+
+        GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+        paramsGrid.columnSpec = GridLayout.spec(column, columnSpan);
+        paramsGrid.rowSpec = GridLayout.spec(row, rowSpan);
+        paramsGrid.height=cellHeight;
+        paramsGrid.width=cellWidth*columnSpan;
+        gridLayout.addView(view, paramsGrid);
+
     }
 
 }

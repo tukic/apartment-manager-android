@@ -22,7 +22,12 @@ import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -78,10 +83,24 @@ public class ShowReservations extends AppCompatActivity {
 
     boolean firstInit = true;
 
+    private DrawerLayout drawer;
+    Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.calendar);
+
+        drawer = findViewById(R.id.drawer_layout);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        final ActionBar actionBar = getSupportActionBar();
 
         /*
         try {
@@ -106,26 +125,36 @@ public class ShowReservations extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        if(drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         //setContentView(R.layout.calendar);
-        initScreen();
+        initScreen2();
     }
 
     void initScreen() {
 
         setContentView(R.layout.calendar);
-        gridLayout = (GridLayout) findViewById(R.id.table);
-        selectMonthSpinner = (Spinner) findViewById(R.id.spinnerMonth);
+        gridLayout = findViewById(R.id.table);
+        selectMonthSpinner = findViewById(R.id.spinnerMonth);
 
-        ArrayAdapter<String> adapterMonth = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> adapterMonth = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, monthsString);
         adapterMonth.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         selectMonthSpinner.setAdapter(adapterMonth);
         selectMonthSpinner.setSelection(month-6);
 
-        selectYearSpinner = (Spinner) findViewById(R.id.spinnerYear);
-        ArrayAdapter<String> adapterYear = new ArrayAdapter<String>(this,
+        selectYearSpinner = findViewById(R.id.spinnerYear);
+        ArrayAdapter<String> adapterYear = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, yearsString);
         adapterYear.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         selectYearSpinner.setAdapter(adapterYear);
@@ -192,7 +221,7 @@ public class ShowReservations extends AppCompatActivity {
         for (int i = 1; i <= YearMonth.of(year, month).lengthOfMonth(); i++) {
             TextView textView = new TextView(this);
             textView.setBackgroundColor(Color.CYAN);
-            textView.setText(new String(""+i));
+            textView.setText(""+i);
             textView.setGravity(Gravity.CENTER);
             textView.setTextSize(fontSize);
             addViewToGridLayout(textView, 0, i, 1, 1
@@ -269,7 +298,7 @@ public class ShowReservations extends AppCompatActivity {
 
                         @Override
                         public int getOpacity() {
-                            return 0;
+                            return PixelFormat.OPAQUE;
                         }
                     };
                     //gd.setColor(Color.RED);
@@ -294,7 +323,6 @@ public class ShowReservations extends AppCompatActivity {
                     //gd.setStroke(5, Color.BLACK);
                     */
                     text.setBackground(gd);
-                    int fin = i;
                     text.setOnClickListener(l -> {
                         Intent intent = new Intent(this, ShowReservation.class);
                         intent.putExtra("reservation", reservation);
@@ -360,7 +388,7 @@ public class ShowReservations extends AppCompatActivity {
 
         TextView textView = new TextView(this);
         textView.setBackgroundColor(Color.rgb(191,98,98));
-        textView.setId(textView.generateViewId());
+        textView.setId(TextView.generateViewId());
         textView.setWidth(cellWidth*columnSpan);
         textView.setHeight(cellHeight);
 
@@ -369,20 +397,20 @@ public class ShowReservations extends AppCompatActivity {
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(layout);
 
-        constraintSet.connect(layout.getId(), constraintSet.TOP, textView.getId(), ConstraintSet.TOP,0);
+        constraintSet.connect(layout.getId(), ConstraintSet.TOP, textView.getId(), ConstraintSet.TOP,0);
         //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
         constraintSet.applyTo(layout);
 
         TextView textView2 = new TextView(this);
         textView2.setBackgroundColor(Color.rgb(50,0,0));
-        textView2.setId(textView2.generateViewId());
+        textView2.setId(TextView.generateViewId());
         textView2.setWidth(cellWidth*columnSpan);
         textView2.setHeight(cellHeight-20);
 
 
         layout.addView(textView2);
         constraintSet.clone(layout);
-        constraintSet.connect(layout.getId(), constraintSet.TOP, textView2.getId(), ConstraintSet.TOP,10);
+        constraintSet.connect(layout.getId(), ConstraintSet.TOP, textView2.getId(), ConstraintSet.TOP,10);
         //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
         constraintSet.applyTo(layout);
 
@@ -446,9 +474,9 @@ public class ShowReservations extends AppCompatActivity {
 
                 reader = new BufferedReader(new InputStreamReader(stream));
 
-                StringBuffer buffer = new StringBuffer();
-                StringBuffer important = new StringBuffer();
-                String line = "";
+                StringBuilder buffer = new StringBuilder();
+                StringBuilder important = new StringBuilder();
+                String line = new String();
 
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line+"\n");
@@ -521,7 +549,6 @@ public class ShowReservations extends AppCompatActivity {
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
             int prog = pb.getProgress();
-            prog++;
             pb.setProgress(values[0]);
         }
     }
@@ -550,8 +577,8 @@ public class ShowReservations extends AppCompatActivity {
 
                 reader = new BufferedReader(new InputStreamReader(stream));
 
-                StringBuffer buffer = new StringBuffer();
-                StringBuffer important = new StringBuffer();
+                StringBuilder buffer = new StringBuilder();
+                StringBuilder important = new StringBuilder();
                 String line = "";
 
                 while ((line = reader.readLine()) != null) {
@@ -840,6 +867,8 @@ public class ShowReservations extends AppCompatActivity {
                 String s = "";
                 if(reservation != null) s = reservation.getTourists().getName();
 
+                TextView reservationTextView = new TextView(this);
+
                 if(i == 0) {
                     Reservation lastRes = apartment.getApartmentReservations().get(date.minusDays(1));
                     if(lastRes != null) {
@@ -852,24 +881,32 @@ public class ShowReservations extends AppCompatActivity {
                                     && reservationSpan <= YearMonth.of(year, month).lengthOfMonth(); reservationSpan++) {
                                 int day = reservationSpan;
                                 tmpRes = apartment.getApartmentReservations().get(LocalDate.of(year, month, day));
+
                             }
 
                         }
 
-                        TextView vt7 = new TextView(this);
-                        //vt.setText("dljGI");
-                        vt7.setWidth(reservationSpan*cellWidth-cellWidthCut);
-                        vt7.setHeight(cellHeight-cellHeightCut);
-                        vt7.setBackgroundColor(Color.YELLOW);
+                        s = lastRes.getTourists().getName();
+
+                        reservationTextView.setWidth(reservationSpan*cellWidth-cellWidthCut);
+                        reservationTextView.setHeight(cellHeight-cellHeightCut);
+                        reservationTextView.setBackgroundColor(Color.YELLOW);
                         if(3*reservationSpan > s.length()) {
-                            vt7.setText(s);
+                            reservationTextView.setText(s);
                         }
 
-                        GridLayout.LayoutParams paramsGrid7 = new GridLayout.LayoutParams();
-                        paramsGrid7.columnSpec = GridLayout.spec(1, reservationSpan);
-                        paramsGrid7.rowSpec = GridLayout.spec(apartmentIndex+1, 1);
-                        paramsGrid7.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
-                        gridLayout.addView(vt7, paramsGrid7);
+                        GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+                        paramsGrid.columnSpec = GridLayout.spec(1, reservationSpan);
+                        paramsGrid.rowSpec = GridLayout.spec(apartmentIndex+1, 1);
+                        paramsGrid.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+                        gridLayout.addView(reservationTextView, paramsGrid);
+
+                        reservationTextView.setOnClickListener(l -> {
+                            Intent intent = new Intent(this, ShowReservation.class);
+                            intent.putExtra("reservation", lastRes);
+                            startActivity(intent);
+                        });
+                        reservationTextView.setGravity(Gravity.CENTER);
 
                         i += reservationSpan-1;
                         continue;
@@ -884,125 +921,75 @@ public class ShowReservations extends AppCompatActivity {
                         while (reservation.equals(apartment.getApartmentReservations().get(date))) {
                             date = date.plusDays(1);
                             reservationSpan++;
-                            if(i+reservationSpan > lengthOfMonth+1) {
-                                reservationSpan = lengthOfMonth - i;
+                            if(i+reservationSpan >= lengthOfMonth+1) {
+                                reservationSpan = lengthOfMonth-i+1;
                                 break;
                             }
                         }
 
                         if(i+reservationSpan >= lengthOfMonth+1) {
-                            TextView vt = new TextView(this);
+                            reservationTextView = new TextView(this);
                             //vt.setText("dljGI");
-                            vt.setWidth(reservationSpan * cellWidth - cellWidthCut);
-                            vt.setHeight(cellHeight - cellHeightCut);
-                            vt.setBackgroundColor(Color.YELLOW);
+                            reservationTextView.setWidth(reservationSpan * cellWidth - cellWidthCut);
+                            reservationTextView.setHeight(cellHeight - cellHeightCut);
+                            reservationTextView.setBackgroundColor(Color.YELLOW);
                             if(3*reservationSpan > s.length()) {
-                                vt.setText(s);
+                                reservationTextView.setText(s);
                             }
 
-                            GridLayout.LayoutParams paramsGrid11 = new GridLayout.LayoutParams();
-                            paramsGrid11.columnSpec = GridLayout.spec(i, reservationSpan);
-                            paramsGrid11.rowSpec = GridLayout.spec(apartmentIndex + 1, 1);
-                            paramsGrid11.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-                            gridLayout.addView(vt, paramsGrid11);
+                            GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+                            paramsGrid.columnSpec = GridLayout.spec(i, reservationSpan);
+                            paramsGrid.rowSpec = GridLayout.spec(apartmentIndex + 1, 1);
+                            paramsGrid.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+
+                            reservationTextView.setOnClickListener(l -> {
+                                Intent intent = new Intent(this, ShowReservation.class);
+                                intent.putExtra("reservation", reservation);
+                                startActivity(intent);
+                            });
+                            reservationTextView.setGravity(Gravity.CENTER);
+
+                            gridLayout.addView(reservationTextView, paramsGrid);
 
                             break;
 
                         } else {
 
-                            TextView vt = new TextView(this);
+                            reservationTextView = new TextView(this);
                             //vt.setText("dljGI");
-                            vt.setWidth((reservationSpan + 1) * cellWidth - 2 * cellWidthCut);
-                            vt.setHeight(cellHeight - cellHeightCut);
-                            vt.setBackgroundColor(Color.YELLOW);
+                            reservationTextView.setWidth((reservationSpan + 1) * cellWidth - 2 * cellWidthCut);
+                            reservationTextView.setHeight(cellHeight - cellHeightCut);
+                            reservationTextView.setBackgroundColor(Color.YELLOW);
                             if(3*reservationSpan > s.length()) {
-                                vt.setText(s);
+                                reservationTextView.setText(s);
                             }
 
-                            GridLayout.LayoutParams paramsGrid11 = new GridLayout.LayoutParams();
-                            paramsGrid11.columnSpec = GridLayout.spec(i, reservationSpan + 1);
-                            paramsGrid11.rowSpec = GridLayout.spec(apartmentIndex + 1, 1);
-                            paramsGrid11.setGravity(Gravity.CENTER);
-                            gridLayout.addView(vt, paramsGrid11);
+                            GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
+                            paramsGrid.columnSpec = GridLayout.spec(i, reservationSpan + 1);
+                            paramsGrid.rowSpec = GridLayout.spec(apartmentIndex + 1, 1);
+                            paramsGrid.setGravity(Gravity.CENTER);
+
+                            reservationTextView.setOnClickListener(l -> {
+                                Intent intent = new Intent(this, ShowReservation.class);
+                                intent.putExtra("reservation", reservation);
+                                startActivity(intent);
+                            });
+                            reservationTextView.setGravity(Gravity.CENTER);
+
+                            gridLayout.addView(reservationTextView, paramsGrid);
 
                             i += reservationSpan - 1;
                             continue;
                         }
+
+
                     }
                 }
-
-                /*
-                if(reservation == null) continue;
-
-                if(reservation != null) {
-                    if(i==0) {
-                        Reservation lastRes = Reservation reservation = apartment.getApartmentReservations().get(date.minusDays(1));
-                        if(lastRes != null) {
-                            if (lastRes.equals(reservation)) {
-                                //TODO: ista rezervacija od prošog miseca
-                            }
-                            else {
-                                //TODO: različita rezervaija ovaj misec
-                            }
-                        }
-                        else {
-                            //TODO: nema prošle rezervaicije
-                        }
-                    }
-
-                } else {
-                    if(i == 0) {
-                        Reservation lastRes = Reservation reservation = apartment.getApartmentReservations().get(date.minusDays(1));
-                        if(lastRes != null) {
-                            //TODO: postoji rezervacija od prošlog
-                        }
-                    }
-                }
-
-
-                 */
-                int fin = i;
-
-                /*text.setOnClickListener(l -> {
-                    Intent intent = new Intent(this, ShowReservation.class);
-                    intent.putExtra("reservation", reservation);
-                    startActivity(intent);
-                });*/
-
-
-
 
             }
             apartmentIndex++;
         }
 
-        /*
-        TextView vt = new TextView(this);
-        //vt.setText("dljGI");
-        vt.setWidth(6*cellWidth-200);
-        vt.setHeight(cellHeight-50);
-        vt.setBackgroundColor(Color.MAGENTA);
-
-        GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
-        paramsGrid.columnSpec = GridLayout.spec(5, 6);
-        paramsGrid.rowSpec = GridLayout.spec(2, 1);
-        paramsGrid.setGravity(Gravity.CENTER);
-        gridLayout.addView(vt, paramsGrid);
-
-
-        //
-        TextView vt2 = new TextView(this);
-        //vt.setText("dljGI");
-        vt2.setWidth(2*cellWidth-200);
-        vt2.setHeight(cellHeight-50);
-        vt2.setBackgroundColor(Color.GREEN);
-
-        GridLayout.LayoutParams paramsGrid2 = new GridLayout.LayoutParams();
-        paramsGrid2.columnSpec = GridLayout.spec(10, 2);
-        paramsGrid2.rowSpec = GridLayout.spec(2, 1);
-        paramsGrid2.setGravity(Gravity.CENTER);
-        gridLayout.addView(vt2, paramsGrid2);
-        */
     }
 
 
