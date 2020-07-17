@@ -5,4 +5,13 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="refresh_str">Osvježi</string>
     <string name="new_reservation_str">Nova rezervacija</string>
+    <string name="tourists_name">Ime gosta</string>
+    <string name="check_in_date">Datum dolaska</string>
+    <string name="check_out_date">Datum odlaska</string>
+    <string name="price_per_day">Cijena po danu</string>
+    <string name="total_price">Ukupna cijena</string>
+    <string name="additional_info">Dodatne informacije</string>
+    <string name="notes">Napomena</string>
+    <string name="save">Spremi</string>
+    <string name="discard">Odbaci</string>
 </resources>

@@ -1,19 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/new_reservation_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/new_reservation_str"
-        android:textSize="25dp"
-        android:textAlignment="center"
-        android:textColor="@color/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.Light"
-        />
+        android:orientation="vertical">
 
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="@string/new_reservation_str"
+            android:textSize="25sp"
+            android:textAlignment="center"
+            android:layout_gravity="center"
+            android:textColor="@color/white"
+            android:background="@color/colorPrimary"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tourists_name"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:labelFor="@id/tourists_name"/>
+
+        <EditText
+            android:id="@+id/tourists_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:importantForAutofill="no"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/check_in_date"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:labelFor="@id/check_in_date" />
+
+        <EditText
+            android:id="@+id/check_in_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="date"
+            android:padding="20dp"
+            android:importantForAutofill="no" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/check_out_date"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:labelFor="@id/check_out_date"/>
+
+        <EditText
+            android:id="@+id/check_out_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="date"
+            android:padding="20dp"
+            android:importantForAutofill="no"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/price_per_day"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:labelFor="@id/price_per_day"/>
+
+        <EditText
+            android:id="@+id/price_per_day"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:digits="0123456789.,"
+            android:padding="20dp"
+            android:importantForAutofill="no" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/total_price"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:labelFor="@id/total_price"/>
+
+        <EditText
+            android:id="@+id/total_price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:digits="0123456789.,"
+            android:padding="20dp"
+            android:importantForAutofill="no" />
+
+        <TextView
+            android:id="@+id/additional_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/additional_info"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:drawableStart="@drawable/ic_add_black_24dp" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save"
+                android:textSize="22sp"
+                android:layout_margin="5dp"
+                android:background="@color/green"
+                style="?android:attr/buttonBarButtonStyle"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/discard"
+                android:textSize="22sp"
+                android:layout_margin="5dp"
+                android:background="@color/red"
+                style="?android:attr/buttonBarButtonStyle"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
