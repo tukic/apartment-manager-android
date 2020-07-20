@@ -5,6 +5,174 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/advanced_payment_check_box"
+        android:layout_margin="20dp"
+        android:textSize="22sp"
+        android:text="@string/advanced_payment_check_box" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/advanced_payment_currency"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/advanced_payment_currency"/>
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/advanced_payment_currency"
+        android:entries="@string/advanced_payment_currency" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/advanced_payment_amount"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/advanced_payment_amount"/>
+
+    <EditText
+        android:id="@+id/advanced_payment_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="numberDecimal"
+        android:digits="0123456789.,"
+        android:importantForAutofill="no"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/number_of_persons"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/number_of_persons"/>
+
+    <EditText
+        android:id="@+id/number_of_persons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="number"
+        android:importantForAutofill="no"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/number_of_adults"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/number_of_adults"/>
+
+    <EditText
+        android:id="@+id/number_of_adults"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="number"
+        android:importantForAutofill="no"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/number_of_children"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/number_of_children"/>
+
+    <EditText
+        android:id="@+id/number_of_children"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="number"
+        android:importantForAutofill="no"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/country"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/country"/>
+
+    <EditText
+        android:id="@+id/country"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="text"
+        android:importantForAutofill="no"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/city"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/city"/>
+
+    <EditText
+        android:id="@+id/city"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="text"
+        android:importantForAutofill="no"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/email"
+        android:inputType="textEmailAddress"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/email"/>
+
+    <EditText
+        android:id="@+id/email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="textEmailAddress"
+        android:importantForAutofill="no"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/phone_number"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:labelFor="@id/phone_number"/>
+
+    <EditText
+        android:id="@+id/phone_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:padding="20dp"
+        android:inputType="number"
+        android:importantForAutofill="no"/>
+
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/pets"
+        android:layout_margin="20dp"
+        android:textSize="22sp"
+        android:text="@string/pets" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

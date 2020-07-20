@@ -53,6 +53,11 @@ import model.Tourists;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
+    private static String reservationsUrl = "https://apartment-manager-demo.herokuapp.com/demo/all-reservations";
+    private static String apartmentsUrl = "https://apartment-manager-demo.herokuapp.com/demo/all-apartments";
+
+    //private static String reservationsUrl = "http://localhost:8080/demo/all-reservations";
+    //private static String apartmentsUrl = "http://localhost:8080/demo/all-apartments";
 
     private Set<Apartment> apartments = new HashSet<>();
     TextView loadingReservationsTextView;
@@ -85,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if(firstInit) {
             progressBar.setProgress(0);
-            new FetchApartments(this).execute("https://apartment-manager-demo.herokuapp.com/demo/all-apartments");
+            new FetchApartments(this).execute(apartmentsUrl);
             firstInit = false;
         }
 
@@ -106,6 +111,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         switch(menuItem.getItemId()) {
             case R.id.new_reservation_opt:
                 Intent intent = new Intent(this, NewReservation.class);
+                Bundle bundle = new Bundle();
+                int i = 0;
+                for(Apartment apartment : apartments) {
+                    bundle.putSerializable("apartment" + i, apartment);
+                    i++;
+                }
+                intent.putExtras(bundle);
                 startActivity(intent);
                 break;
 
@@ -222,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onPostExecute(result);
             progressBar.setProgress(40);
             try {
-                new JsonTask(activity).execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+                new JsonTask(activity).execute(reservationsUrl);
             } catch (Exception e) {
                 e.printStackTrace();
 
@@ -505,6 +517,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         for (Apartment apartment : apartments) {
 
+
+            // TODO:solve problems with calendar view
+            // reservations start and final date are not displayed correctly
+
             TextView apartmentNameView = new TextView(this);
             apartmentNameView.setText(apartment.getApartmentName());
             apartmentNameView.setBackgroundColor(Color.MAGENTA);
@@ -585,8 +601,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
 
                 else {
-
-
                     if(reservation != null) {
                         int reservationSpan = 0;
                         while (reservation.equals(apartment.getApartmentReservations().get(date))) {

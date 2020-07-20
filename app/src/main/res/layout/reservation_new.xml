@@ -41,6 +41,19 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/apartment_name"
+            android:textSize="22sp"
+            android:padding="20dp"
+            android:labelFor="@id/apartment"/>
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/apartment" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="@string/check_in_date"
             android:textSize="22sp"
             android:padding="20dp"
@@ -122,6 +135,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/save"
                 android:text="@string/save"
                 android:textSize="22sp"
                 android:layout_margin="5dp"
@@ -131,6 +145,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/discard"
                 android:text="@string/discard"
                 android:textSize="22sp"
                 android:layout_margin="5dp"

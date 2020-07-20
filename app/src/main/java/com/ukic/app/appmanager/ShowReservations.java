@@ -68,8 +68,9 @@ import model.Tourists;
 
 public class ShowReservations extends AppCompatActivity {
 
-    ProgressBar pb;
+    private static String reservationsUrl = "https://apartment-manager-demo.herokuapp.com/demo/all-reservations";
 
+    ProgressBar pb;
 
     GridLayout gridLayout;
     Spinner selectMonthSpinner;
@@ -538,7 +539,7 @@ public class ShowReservations extends AppCompatActivity {
             super.onPostExecute(result);
             pb.setProgress(40);
             try {
-                new JsonTask().execute("https://apartment-manager-demo.herokuapp.com/demo/all-reservations");
+                new JsonTask().execute(reservationsUrl);
             } catch (Exception e) {
                 e.printStackTrace();
 

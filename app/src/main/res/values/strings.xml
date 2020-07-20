@@ -14,4 +14,22 @@
     <string name="notes">Napomena</string>
     <string name="save">Spremi</string>
     <string name="discard">Odbaci</string>
+    <string name="number_of_persons">Broj osoba</string>
+    <string name="number_of_adults">Broj odraslih</string>
+    <string name="number_of_children">Broj djece</string>
+    <string name="city">Grad</string>
+    <string name="country">Država</string>
+    <string name="email">E-mail</string>
+    <string name="phone_number">Broj telefona</string>
+    <string name="pets">Životinje</string>
+    <string name="advanced_payment_check_box">Uplaćena akontacija</string>
+    <string name="advanced_payment_currency">Valuta akontacije</string>
+    <string name="advanced_payment_amount">Iznos akontacije</string>
+    <string name="apartment_name">Apartman</string>
+    <string name="saving_reservation_successful">Rezervacija uspješno spremljena</string>
+    <string name="saving_reservation_not_successful">Spremanje rezervacije nije uspjelo</string>
+    <string-array name="advanced_payment_currency_array">
+        <item>EUR</item>
+        <item>HRK</item>
+    </string-array>
 </resources>
