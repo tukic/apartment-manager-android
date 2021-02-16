@@ -47,9 +47,11 @@ public class ShowReservation extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.reservation);
 
-        TextView textView = (TextView) findViewById(R.id.reservationName);
         Reservation reservation = (Reservation) getIntent().getSerializableExtra("reservation");
-        textView.setText(reservation.getTourists().getName());
+        TextView touristsNameTextView = (TextView) findViewById(R.id.reservationName);
+        touristsNameTextView.setText(reservation.getTourists().getName());
+        TextView pricePerNightTextView = (TextView) findViewById(R.id.pricePerNightID);
+        pricePerNightTextView.setText(reservation.getPricePerNight().toString());
 
 
     }
