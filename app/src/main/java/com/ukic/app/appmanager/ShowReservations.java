@@ -632,9 +632,7 @@ public class ShowReservations extends AppCompatActivity {
                         Reservation reservation = new Reservation(reservationId, tourists
                                 , apartment, checkInDate, checkOutDate, pricePerNight, totalPrice
                                 , confirmed, advancedPayment, advPayCurrency);
-
-                        //important.append("reservationId=").append(obj.getString("reservationId"));
-                        //important.append("checkInDate=").append(obj.getString("checkInDate"));
+                        
 
                         System.out.println("id: " + reservationId);
                         apartment.putReservationInApartment(reservation);
@@ -731,12 +729,6 @@ public class ShowReservations extends AppCompatActivity {
         return apartments;
     }
 
-    /*
-
-        -----
-
-     */
-
     void initScreen2() {
 
         setContentView(R.layout.calendar);
@@ -822,11 +814,8 @@ public class ShowReservations extends AppCompatActivity {
             textView.setText(new String(""+i));
             textView.setGravity(Gravity.CENTER);
             textView.setTextSize(fontSize);
-                            /*text.setOnClickListener(l -> {
-                    Intent intent = new Intent(this, ShowReservation.class);
-                    intent.putExtra("reservation", reservation);
-                    startActivity(intent);
-                });*/
+
+
             addViewToGridLayout2(textView, 0, i, 1, 1
                     , cellWidth, firstCellHeight);
         }
@@ -996,51 +985,6 @@ public class ShowReservations extends AppCompatActivity {
 
     private void addViewToGridLayout2(View view, int row, int column, int rowSpan
             , int columnSpan, int cellWidth, int cellHeight) {
-
-        /*
-        TextView textView = new TextView(this);
-        textView.setBackgroundColor(Color.rgb(191,98,98));
-        textView.setId(textView.generateViewId());
-        textView.setWidth(cellWidth*columnSpan);
-        textView.setHeight(cellHeight);
-
-        ConstraintLayout layout = new ConstraintLayout(this);
-        layout.addView(textView);
-        ConstraintSet constraintSet = new ConstraintSet();
-        constraintSet.clone(layout);
-
-        constraintSet.connect(layout.getId(), constraintSet.TOP, textView.getId(), ConstraintSet.TOP,0);
-        //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
-        constraintSet.applyTo(layout);
-
-        TextView textView2 = new TextView(this);
-        textView2.setBackgroundColor(Color.rgb(50,0,0));
-        textView2.setId(textView2.generateViewId());
-        textView2.setWidth(cellWidth*columnSpan);
-        textView2.setHeight(cellHeight-20);
-
-
-        layout.addView(textView2);
-        constraintSet.clone(layout);
-        constraintSet.connect(layout.getId(), constraintSet.TOP, textView2.getId(), ConstraintSet.TOP,10);
-        //constraintSet.connect(textView,ConstraintSet.TOP,R.id.check_answer1,ConstraintSet.TOP,0);
-        constraintSet.applyTo(layout);
-        */
-
-        /*
-        //ConstraintLayout.LayoutParams params;
-        params.width = cellWidth*columnSpan-42;
-        //params.height = GridLayout.LayoutParams.WRAP_CONTENT;
-        params.height = cellHeight-42;
-
-        layout.addView(view, params);
-
-        params.width=cellWidth*columnSpan;
-        params.height=cellHeight;
-
-        layout.addView(view, params);
-
-         */
 
         GridLayout.LayoutParams paramsGrid = new GridLayout.LayoutParams();
         paramsGrid.columnSpec = GridLayout.spec(column, columnSpan);
